@@ -1,15 +1,8 @@
----
-title: "Speed Camera Violations in Chicago, 2014-2016"
-author: "Chandrasekar Ganesan"
-date: "March 9, 2017"
-output: 
-  html_document: 
-    keep_md: yes
----
+# Speed Camera Violations in Chicago, 2014-2016
+Chandrasekar Ganesan  
+March 9, 2017  
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
 #Background
 
 ##Content
@@ -30,8 +23,16 @@ The speed camera data was collected and published by the Chicago Police Departme
 
 ## Getting Data
 
-```{r}
+
+```r
 library(readr)
+```
+
+```
+## Warning: package 'readr' was built under R version 3.3.3
+```
+
+```r
 cameras <- read_csv("~/data-playground/chicagopd/cameras.csv", 
     col_types = cols(ADDRESS = col_character(), 
         `CAMERA ID` = col_character(), DATE = col_date(format = "%m/%d/%Y"), 
@@ -42,8 +43,29 @@ names(cameras) <- make.names(names(cameras))
 ```
 
 ## Data Cleanup 
-```{r }
+
+```r
 library(dplyr)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```r
 tempdata <- cameras
 
 #dataNA <- sum(is.na(tempdata$LATITUDE) & is.na(tempdata$LONGITUDE))
@@ -58,10 +80,42 @@ addressNA <- cbind(addressNA, tempdata[is.na(tempdata$LATITUDE) & is.na(tempdata
 #Using google's ggmap package
 
 library(ggmap)
+```
 
+```
+## Warning: package 'ggmap' was built under R version 3.3.3
+```
+
+```
+## Loading required package: ggplot2
+```
+
+```r
 #Find the Latitude and Longitude for the address
 latlon <- lapply(addressNA[1], geocode)
+```
 
+```
+## Information from URL : http://maps.googleapis.com/maps/api/geocode/json?address=1111%20N%20HUMBOLDT,Chicago,%20IL&sensor=false
+```
+
+```
+## Information from URL : http://maps.googleapis.com/maps/api/geocode/json?address=7739%20S%20WESTERN,Chicago,%20IL&sensor=false
+```
+
+```
+## Information from URL : http://maps.googleapis.com/maps/api/geocode/json?address=7738%20S%20WESTERN,Chicago,%20IL&sensor=false
+```
+
+```
+## Information from URL : http://maps.googleapis.com/maps/api/geocode/json?address=5529%20S%20WESTERN,Chicago,%20IL&sensor=false
+```
+
+```
+## Information from URL : http://maps.googleapis.com/maps/api/geocode/json?address=5520%20S%20WESTERN,Chicago,%20IL&sensor=false
+```
+
+```r
 addressNA <- cbind(addressNA, latlon$fulladdress)
 
 for(i in 1:nrow(addressNA)){
@@ -69,12 +123,12 @@ for(i in 1:nrow(addressNA)){
   tempdata[tempdata$ADDRESS == addressNA[i,2],]$LONGITUDE <- addressNA[i,3]
   tempdata[tempdata$ADDRESS == addressNA[i,2],]$LOCATION <-  paste("(",addressNA[i,4],", ",addressNA[i,3],")", sep="" )
 }
-
 ```
 
 > Let's add few more attributes for better reporting
 
-```{r }
+
+```r
 tempdata$WEEKDAY <- as.factor(weekdays(tempdata$DATE))
 tempdata$TYPE <- NA
 tempdata[tempdata$WEEKDAY %in% c("Saturday","Sunday"),]$TYPE <- "Weekend"
@@ -83,8 +137,8 @@ tempdata$TYPE <- as.factor(tempdata$TYPE)
 ```
 
 ## Camera Density in Chicago
-```{r }
 
+```r
 #plot(tempdata$LATITUDE, tempdata$LONGITUDE, col=rgb(0,1,1,alpha=1/3), pch=20, cex=1)
 library(manipulate)
 library(ggplot2)
@@ -99,12 +153,18 @@ g <- g + theme_bw()
 g <- g + stat_binhex(aes(x=LATITUDE, y=LONGITUDE, alpha=..count..), fill="#f03b20") 
 g <- g + geom_text(size=2,check_overlap = TRUE, aes(LATITUDE, LONGITUDE, label=ADDRESS))
 g + ggtitle("CAMERA DENSITY IN CHICAGO")
+```
 
 ```
+## Warning: package 'hexbin' was built under R version 3.3.3
+```
+
+![](README_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
 
 ## Average violations weekday Vs. weekends
 
-```{r }
+
+```r
 violationtype <- aggregate(VIOLATIONS ~ TYPE, tempdata, mean)
 p <- ggplot(violationtype)
 p <- p + geom_bar(aes(TYPE, VIOLATIONS, color=TYPE,fill=TYPE), stat="identity")
@@ -112,9 +172,12 @@ p <- p + ggtitle("Average violations weekday Vs. weekends")
 p
 ```
 
+![](README_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
 ## Camera that captured the most violations
 
-```{r }
+
+```r
 library(dplyr)
 violationsbycamera <- aggregate(VIOLATIONS ~ ADDRESS, tempdata, sum)
 violationsbycamera <- arrange(violationsbycamera, desc(VIOLATIONS))
@@ -131,12 +194,15 @@ t <- t + guides(col=guide_legend(reverse = TRUE))
 t
 ```
 
+![](README_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+
 ## Violations trend over the year
 
 Looking at the chart shown below, it is largely evident the violations are decreasing on a month to month comparison basis.
 
 
-```{r }
+
+```r
 tempdata$YEAR <- as.factor(as.numeric(as.character(tempdata$DATE,"%Y")))
 tempdata$MONTH <- as.factor(as.numeric(as.character(tempdata$DATE,"%m")))
 
@@ -147,13 +213,13 @@ g <- g + ggtitle("Violations Trend by Month")
 g <- g + scale_y_continuous(labels = scales::comma)
 g <- g + labs(x = "MONTH")
 g
-
-
-
 ```
 
+![](README_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
-```{r, }
+
+
+```r
 library(reshape2)
 
 df2014 <- aggregate(VIOLATIONS ~ MONTH + YEAR, tempdata[tempdata$YEAR==2014,], sum)
@@ -177,3 +243,9 @@ g <- g + geom_segment(data=mrgset1, aes(x=x,y=y,xend=xend, yend=yend), show.lege
 g <- g + geom_segment(data=mrgset2, aes(x=x, y=y, xend=xend, yend=yend), show.legend = FALSE)
 g
 ```
+
+```
+## Warning: Removed 6 rows containing missing values (geom_segment).
+```
+
+![](README_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
