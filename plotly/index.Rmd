@@ -1,0 +1,26 @@
+---
+title: "Data Products Week 3"
+author: "Chandrasekar Ganesan"
+date: "September 15, 2017"
+output:
+  ioslides_presentation: default
+  slidy_presentation: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+suppressMessages(library(plotly))
+```
+
+## R Markdown Presentation & Plotly
+
+Create a web page presentation using R Markdown that features a plot created with Plotly. Host your webpage on either GitHub Pages, RPubs, or NeoCities. Your webpage must contain the date that you created the document, and it must contain a plot created with Plotly. We would love to see you show off your creativity!
+
+## MTCars data set 
+
+```{r cars, echo = FALSE, eval=TRUE}
+mtcars$trans <- factor(mtcars$am, labels = c("Automatic","Manual"))
+g <- ggplot(data = mtcars, aes(mpg, wt, color=cyl))
+g <- g + geom_point() + geom_smooth()  + facet_wrap(~trans)
+suppressMessages(ggplotly(g))
+```

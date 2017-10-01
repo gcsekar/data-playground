@@ -1,0 +1,101 @@
+---
+title: "Data-Product Assignment"
+author: "Chandrasekar Ganesan"
+date: "September 29, 2017"
+output:
+  slidy_presentation: default
+  ioslides_presentation: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Overview
+
+This is an R Markdown for Data-product week 4 assignment.
+Purpose of the MTCars data set analyzer is to visually manipulate the mtcars data set via a dynamic web interface.
+
+## Introduction 
+
+ User can manipulate various attributes of the dataset and analyze the resulting plot visually
+
+Following dimensions of the dataset can be manipulated dynamically
+
+Attributes            | Attribute
+----------------------|---------------------
+Mile per gallon (mpg) | Quarter mile time (qsec)
+Number of cylinders (cyl) | V/S (vs)
+Diplacements (disp)   | Transmission type (am)
+Real axle ratio (drat)| Gears (gear)
+Weight (wt)           |
+
+
+## Working model of Shiny app
+
+Working model of the shiny app can be (found here)[https://gcsekar.shinyapps.io/MTCars-Analyser/].
+
+## UI Code
+```{r , echo = TRUE, eval=FALSE}
+library(shiny)
+library(ggplot2)
+
+analyzeData <- mtcars
+# Define UI for application that draws a histogram
+shinyUI(pageWithSidebar(
+  headerPanel("MTCars Data Analyzer"),
+  sidebarPanel(
+    
+    sliderInput('sampleSize', 'Sample Size', min=10, max=nrow(analyzeData),
+                value=nrow(analyzeData), step=5, round=0),
+    
+    selectInput('x', 'X', names(analyzeData),names(analyzeData)[1]),
+    selectInput('y', 'Y', names(analyzeData), names(analyzeData)[6]),
+    selectInput('color', 'Color', c('None', names(analyzeData)), names(analyzeData)[2]),
+    
+    checkboxInput('smooth', 'Smooth', value = 1),
+    
+    selectInput('facet_row', 'Facet Row', c(None='.', names(analyzeData))),
+    selectInput('facet_col', 'Facet Column', c(None='.', names(analyzeData)))
+  ),
+  
+  mainPanel(
+    plotOutput('plot')
+  )
+))
+```
+
+## Server Code
+
+```{r, echo=TRUE, eval=FALSE}
+#
+library(shiny)
+library(ggplot2)
+
+shinyServer(function(input, output) 
+  dataset <- reactive( {
+    mtcars[sample(nrow(mtcars), input$sampleSize),]
+  })
+  
+  output$plot <- reactivePlot(function() {
+    
+    g <- ggplot(dataset(), aes_string(x=input$x, y=input$y)) + geom_point()
+    
+    if (input$color != 'None')
+      g <- g + aes_string(color=input$color)
+    
+    facets <- paste(input$facet_row, '~', input$facet_col)
+    if (facets != '. ~ .')
+      g <- g + facet_grid(facets)
+    
+    if (input$smooth)
+      g <- g + geom_smooth()
+    
+    g <- g + ggtitle("Analysis for MT Cars dataset", "(with Shiny)")
+    print(g)
+    
+  }, height=600
+  )
+})
+```
+

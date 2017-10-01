@@ -1,0 +1,12 @@
+name: MTCars-Analyser
+title: MTCars-Analyser
+username:
+account: gcsekar
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 220826
+bundleId: 1005610
+url: https://gcsekar.shinyapps.io/MTCars-Analyser/
+when: 1506870025.46648
+asMultiple: FALSE
+asStatic: FALSE
